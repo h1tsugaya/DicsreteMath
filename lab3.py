@@ -46,10 +46,7 @@ def draw_graf(adj_matrix):
 
     pos = nx.spring_layout(Graf)
     labels = nx.get_edge_attributes(Graf, 'weight')
-
     return [Graf, pos, labels]
-
-
 
 
 # Функция расчет матрицы инцедентности
@@ -160,6 +157,7 @@ def nodes_from_metric_matrix(metric_matrix):
     return diameter, radius, central_nodes, peripheral_nodes
 
 
+# Функция генерации всех возможнных подграфов
 def generate_binary_combinations(length):
     combinations = []
 
@@ -175,10 +173,12 @@ def generate_binary_combinations(length):
     helper(length - 1)
     return combinations
 
+
 unused_nodes = set()
 
+
+# Функция проверки на пустой подграф
 def is_empty_subgraph(subgraph):
-    # print(subgraph)
     for i in range(len(subgraph)):
         for j in range(i + 1, len(subgraph)):
             unused_nodes.add(subgraph[i])
@@ -236,12 +236,12 @@ for subgraph in sorted_combinations:
     if is_empty_subgraph(subgraph):
         empty_subgraphs.append(subgraph)
 empty_subgraphs.pop()
-print(empty_subgraphs)
+print("Все пустые подграфы:", empty_subgraphs)
 
 used_colors = set()
 
-
-colors = ['black', 'silver', 'gray', 'white', 'maroon', 'red', 'purple', 'fuchsia', 'green', 'lime', 'olive', 'yellow', 'navy', 'blue', 'teal', 'aqua']
+colors = ['black', 'silver', 'gray', 'white', 'maroon', 'red', 'purple', 'fuchsia', 'green', 'lime', 'olive', 'yellow',
+          'navy', 'blue', 'teal', 'aqua']
 # Обновляем атрибуты вершин
 updated_colors = {}
 [Graf, pos, labels] = draw_graf(adj_matrix)
@@ -257,7 +257,7 @@ for subgraph in empty_subgraphs:
 
 print(updated_colors)
 print("Хроматическое число:", len(used_colors))
-nx.draw(Graf, pos, with_labels=True, node_size=700, node_color=[updated_colors[node] for node in Graf.nodes()], font_size=10, font_weight='bold')
+nx.draw(Graf, pos, with_labels=True, node_size=700, node_color=[updated_colors[node] for node in Graf.nodes()],
+        font_size=10, font_weight='bold')
 nx.draw_networkx_edge_labels(Graf, pos, edge_labels=labels)
-
 plt.show()
