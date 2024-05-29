@@ -47,9 +47,9 @@ def draw_graf(adj_matrix):
     pos = nx.spring_layout(Graf)
     labels = nx.get_edge_attributes(Graf, 'weight')
 
-    nx.draw(Graf, pos, with_labels=True, node_size=700, node_color='red', font_size=10, font_weight='bold')
-    nx.draw_networkx_edge_labels(Graf, pos, edge_labels=labels)
-    plt.show()
+    return [Graf, pos, labels]
+
+
 
 
 # Функция расчет матрицы инцедентности
@@ -74,28 +74,6 @@ def adjacency_to_incidence(adj_matrix):
                     edge_index += 1
 
     return incidence_matrix
-
-
-# Вводим размерность и тип графа
-n = int(input("Введите размерность матрицы: "))
-graf_type = input("Выберите тип графа (случайный/полный/кратные ребра и петли): ").lower()
-
-# Нэйминг точек вершин(в нашем случе это будут цифровые обозначения вершин)
-nodes = []
-for i in range(n):
-    nodes.append(i)
-
-# Вывод матрицы смежности
-adj_matrix = generate_matrix(n, graf_type)
-print("Матрица смежности:")
-name_column_adjacent = ' '
-for i in range(n):
-    name_column_adjacent += (" " + str(i) + " ")
-print(name_column_adjacent)
-name_row_adjacent = 0
-for row in adj_matrix:
-    print(str(name_row_adjacent) + str(row))
-    name_row_adjacent += 1
 
 
 # Функция умножения матриц
@@ -182,6 +160,55 @@ def nodes_from_metric_matrix(metric_matrix):
     return diameter, radius, central_nodes, peripheral_nodes
 
 
+def generate_binary_combinations(length):
+    combinations = []
+
+    def helper(n, prefix=[]):
+        if n == -1:
+            combinations.append(prefix)
+            return
+        helper(n - 1, prefix)
+        copy_prefix = prefix.copy()
+        copy_prefix.append(n)
+        helper(n - 1, copy_prefix)
+
+    helper(length - 1)
+    return combinations
+
+unused_nodes = set()
+
+def is_empty_subgraph(subgraph):
+    # print(subgraph)
+    for i in range(len(subgraph)):
+        for j in range(i + 1, len(subgraph)):
+            unused_nodes.add(subgraph[i])
+            unused_nodes.add(subgraph[j])
+            if adj_matrix[subgraph[i]][subgraph[j]]:
+                return False
+    return True
+
+
+# Вводим размерность и тип графа
+n = int(input("Введите размерность матрицы: "))
+graf_type = input("Выберите тип графа (случайный/полный/кратные ребра и петли): ").lower()
+
+# Нэйминг точек вершин(в нашем случе это будут цифровые обозначения вершин)
+nodes = []
+for i in range(n):
+    nodes.append(i)
+
+# Вывод матрицы смежности
+adj_matrix = generate_matrix(n, graf_type)
+print("Матрица смежности:")
+name_column_adjacent = ' '
+for i in range(n):
+    name_column_adjacent += (" " + str(i) + " ")
+print(name_column_adjacent)
+name_row_adjacent = 0
+for row in adj_matrix:
+    print(str(name_row_adjacent) + str(row))
+    name_row_adjacent += 1
+
 print('')
 # Вывод матрицы инцедентности
 incidence_matrix = adjacency_to_incidence(adj_matrix)
@@ -201,5 +228,36 @@ graph_diameter, graph_radius, graph_center, graph_peripheral_nodes = nodes_from_
 print(f'Диаметр: {graph_diameter}, радиус: {graph_radius}')
 print(f'Центральные вершины: {graph_center}, периферийные вершины: {graph_peripheral_nodes}')
 
-# Отрисовка графа
-draw_graf(adj_matrix)
+combinations = generate_binary_combinations(n)
+sorted_combinations = sorted(combinations, key=len, reverse=True)
+
+empty_subgraphs = []
+for subgraph in sorted_combinations:
+    if is_empty_subgraph(subgraph):
+        empty_subgraphs.append(subgraph)
+empty_subgraphs.pop()
+print(empty_subgraphs)
+
+used_colors = set()
+
+
+colors = ['black', 'silver', 'gray', 'white', 'maroon', 'red', 'purple', 'fuchsia', 'green', 'lime', 'olive', 'yellow', 'navy', 'blue', 'teal', 'aqua']
+# Обновляем атрибуты вершин
+updated_colors = {}
+[Graf, pos, labels] = draw_graf(adj_matrix)
+
+for subgraph in empty_subgraphs:
+    color = colors.pop()
+    for id in subgraph:
+        if id not in unused_nodes:
+            continue
+        updated_colors[id] = color
+        used_colors.add(color)
+        unused_nodes.remove(id)
+
+print(updated_colors)
+print("Хроматическое число:", len(used_colors))
+nx.draw(Graf, pos, with_labels=True, node_size=700, node_color=[updated_colors[node] for node in Graf.nodes()], font_size=10, font_weight='bold')
+nx.draw_networkx_edge_labels(Graf, pos, edge_labels=labels)
+
+plt.show()
