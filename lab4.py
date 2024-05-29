@@ -15,6 +15,7 @@ def generate_matrix(n, graf_type):
         for i in range(n):
             for j in range(n):
                 matrix[i][j] = random.randint(0, 3)
+
     else:
         for i in range(n):
             for j in range(i, n):
@@ -22,9 +23,11 @@ def generate_matrix(n, graf_type):
                     matrix[i][j] = random.randint(0, 3)
                 else:
                     matrix[i][j] = random.randint(0, 1)
+
     for i in range(n):
         for j in range(i):
             matrix[i][j] = matrix[j][i]
+
     return matrix
 
 
@@ -32,12 +35,15 @@ def generate_matrix(n, graf_type):
 def draw_graf(adj_matrix):
     Graf = nx.Graph()
     n = len(adj_matrix)
+
     for i in range(n):
         Graf.add_node(i)
+
     for i in range(n):
         for j in range(n):
             if adj_matrix[i][j] > 0:
                 Graf.add_edge(i, j, weight=adj_matrix[i][j])
+
     pos = nx.spring_layout(Graf)
     labels = nx.get_edge_attributes(Graf, 'weight')
     return [Graf, pos, labels]
@@ -54,13 +60,16 @@ def adjacency_to_incidence(adj_matrix):
         num_edges += adj_matrix[i][i]
     incidence_matrix = [[0] * num_edges for _ in range(num_vertex)]
     edge_index = 0
+
     for i in range(num_vertex):
         for j in range(i, num_vertex):
             if adj_matrix[i][j] != 0:
                 for _ in range(adj_matrix[i][j]):
                     incidence_matrix[i][edge_index] += 1
                     incidence_matrix[j][edge_index] += 1
+
                     edge_index += 1
+
     return incidence_matrix
 
 
@@ -105,15 +114,19 @@ def convert_to_metric_matrix(adjacency_matrix):
                 if (M[i][j] is None) and S_power[i][j] != 0:
                     M[i][j] = k
                     M_updated = True
+
         if not M_updated:
             break
+
         k += 1
+
     for i in range(n):
         for j in range(n):
             if (M[i][j]) is None:
                 M[i][j] = -1
     for i in range(n):
         M[i][i] = 0
+
     return M
 
 
@@ -156,8 +169,11 @@ def generate_binary_combinations(length):
         copy_prefix = prefix.copy()
         copy_prefix.append(n)
         helper(n - 1, copy_prefix)
+
     helper(length - 1)
     return combinations
+
+
 unused_nodes = set()
 
 
@@ -170,6 +186,28 @@ def is_empty_subgraph(subgraph):
             if adj_matrix[subgraph[i]][subgraph[j]]:
                 return False
     return True
+
+
+def dijkstra(adj_matrix, start):
+    n = len(adj_matrix)
+    unvisited_nodes = list(range(n))
+    shortest_path = {node: float('inf') for node in unvisited_nodes}
+    shortest_path[start] = 0
+    while unvisited_nodes:
+        min_node = None
+        for node in unvisited_nodes:
+            if min_node is None:
+                min_node = node
+            elif shortest_path[node] < shortest_path[min_node]:
+                min_node = node
+        current_distance = shortest_path[min_node]
+        for neighbor, weight in enumerate(adj_matrix[min_node]):
+            if weight > 0:
+                distance = current_distance + weight
+                if distance < shortest_path[neighbor]:
+                    shortest_path[neighbor] = distance
+        unvisited_nodes.remove(min_node)
+    return shortest_path
 
 
 # Вводим размерность и тип графа
@@ -211,6 +249,12 @@ for row in M_matrix:
 graph_diameter, graph_radius, graph_center, graph_peripheral_nodes = nodes_from_metric_matrix(M_matrix)
 print(f'Диаметр: {graph_diameter}, радиус: {graph_radius}')
 print(f'Центральные вершины: {graph_center}, периферийные вершины: {graph_peripheral_nodes}')
+
+start_vertex = 0
+distances = dijkstra(adj_matrix, start_vertex)
+print(f"Кратчайшие расстояния от вершины {start_vertex}:")
+for vertex, distance in distances.items():
+    print(f"До вершины {vertex}: {distance}")
 
 combinations = generate_binary_combinations(n)
 sorted_combinations = sorted(combinations, key=len, reverse=True)
